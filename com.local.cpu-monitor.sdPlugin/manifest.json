@@ -1,0 +1,43 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "SDKVersion": 2,
+  "Author": "Local",
+  "Name": "CPU/GPU Monitor",
+  "Description": "Show macOS CPU and GPU usage on a key.",
+  "Icon": "imgs/plugin",
+  "URL": "https://github.com/smereddy/streamdock-zoom-plugin",
+  "Version": "0.1.0",
+  "CodePath": "plugin/index.js",
+  "Category": "System",
+  "CategoryIcon": "imgs/category",
+  "Software": {
+    "MinimumVersion": "3.0"
+  },
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "10.15"
+    }
+  ],
+  "Nodejs": {
+    "Version": "20",
+    "Debug": "enabled"
+  },
+  "Actions": [
+    {
+      "UUID": "com.local.cpu-monitor.display",
+      "Name": "CPU/GPU Monitor",
+      "Tooltip": "Real-time CPU and GPU usage. Press to refresh.",
+      "Icon": "imgs/action",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/action",
+          "TitleAlignment": "bottom",
+          "FontSize": "9"
+        }
+      ],
+      "SupportedInMultiActions": false
+    }
+  ]
+}

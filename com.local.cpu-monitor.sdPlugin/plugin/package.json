@@ -1,0 +1,10 @@
+{
+  "name": "com.local.cpu-monitor",
+  "version": "0.1.0",
+  "description": "CPU/GPU monitor StreamDock plugin",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
