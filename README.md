@@ -1,123 +1,165 @@
-# Fifine StreamDock Plugins for macOS
+# Fifine D6 StreamDock Plugins (macOS)
 
-Stream Deck plugins ported to the **Fifine AmpliGame Stream Deck D6** (and other
-HotSpot **StreamDock** devices: Ajazz, Mirabox, VSDinside, …), migrated from the
-Elgato Node SDK versions in [`../streamdeck-macos-plugins`](../streamdeck-macos-plugins).
+Hardware-monitor and Claude plugins for the **Fifine AmpliGame Stream Deck D6**
+(and other HotSpot **StreamDock** devices: Ajazz, Mirabox, VSDinside…).
 
-Each plugin is plain Node.js talking the StreamDock WebSocket protocol directly
-(no `@elgato/streamdeck`, no TypeScript/esbuild). Keypad plugins render their
-display as a **PNG** with [pureimage](https://github.com/joshmarinacci/node-pureimage)
-(a pure-JS canvas — no native binaries) and push it via `setImage`.
+Migrated from the Elgato Node-SDK versions to plain Node.js speaking the
+StreamDock WebSocket protocol directly. Each key image is rendered to **PNG**
+with [pureimage](https://github.com/joshmarinacci/node-pureimage) (pure JS — no
+native binaries) and pushed via `setImage`. Two plugins, each a **category**
+with one action per item.
 
-> **Device:** the D6 has **15 LCD keys (5×3) and no rotary dials**, so only
-> keypad plugins are ported.
+> The D6 has **15 LCD keys (5×3), no dials** — keypad items only.
 
-## Plugins
+---
 
-Two consolidated plugins, each a **category** with one action per item. UUID
-prefix: `br.com.m4v3r1ck.*`.
+## 🖥️ HWiNFO
 
-### `br.com.m4v3r1ck.hwinfo.sdPlugin` — category **HWiNFO**
+Hardware dashboard in three visual styles. Drag any item onto a key.
 
-Three visual styles: **bars**, **radial gauge** (green/yellow/red by value), and
-**history** (big value + filled sparkline; CPU green, GPU red).
+### Bars
 
-| Item | Style | Data source | Needs helper? |
-|------|-------|-------------|:---:|
-| CPU / GPU | bars | `top` + `ioreg` | – |
-| Memory | bars | `vm_stat` / `sysctl` | – |
-| CPU Load / GPU Load / RAM Load | gauge | `top` / `ioreg` / `vm_stat` (real %) | – |
-| CPU Temp / GPU Temp | gauge | real °C via helper, else `*_thermal_level` proxy | optional |
-| Fan | gauge | fan RPM | **yes** |
-| CPU Usage / GPU Usage | history | `top` / `ioreg` (real %) | – |
-| GPU Clock / GPU Mem | history | `ioreg` (MHz / VRAM MB) | – |
-| GPU Temp | history | real °C via helper, else thermal proxy | optional |
-| CPU Clock / CPU PWR / CPU Temp | history | helper (MHz / W / °C) | **yes** |
+| | | |
+|:--:|:--:|:--:|
+| <img src="docs/images/cpu-gpu.png" width="110"> | <img src="docs/images/memory.png" width="110"> | |
+| **CPU / GPU** — usage bars | **Memory** — RAM / swap / pressure | |
 
-> **CPU Volt** from the print is omitted — macOS `powermetrics` doesn't expose it
-> and the legacy SMC IOKit reads are blocked on recent macOS.
+### Gauges — radial dial, colored **green / yellow / red** by value
 
-#### Privileged sensor helper (real °C, fan RPM, CPU power/clock)
+| | | |
+|:--:|:--:|:--:|
+| <img src="docs/images/gauge-cpu-load.png" width="110"> | <img src="docs/images/gauge-gpu-load.png" width="110"> | <img src="docs/images/gauge-ram-load.png" width="110"> |
+| **CPU Load** | **GPU Load** | **RAM Load** |
+| <img src="docs/images/gauge-cpu-temp.png" width="110"> | <img src="docs/images/gauge-gpu-temp.png" width="110"> | <img src="docs/images/gauge-fan.png" width="110"> |
+| **CPU Temp** ¹ | **GPU Temp** ¹ | **Fan** ² |
 
-macOS only exposes real temps/fan/power to root (`powermetrics`). `helper/`
-ships a **LaunchDaemon** that runs `powermetrics` as root and publishes
-`/tmp/hwinfo-sensors.json`; the plugin reads it and falls back to the no-sudo
-thermal-level proxy / `n/a` when it's not installed. Enable once (asks for your
-password):
+### History — current value + sparkline (CPU green, GPU red)
+
+| | | |
+|:--:|:--:|:--:|
+| <img src="docs/images/hist-cpu-usage.png" width="110"> | <img src="docs/images/hist-gpu-usage.png" width="110"> | <img src="docs/images/hist-gpu-clock.png" width="110"> |
+| **CPU Usage** | **GPU Usage** | **GPU Clock** |
+| <img src="docs/images/hist-gpu-mem.png" width="110"> | <img src="docs/images/hist-gpu-temp.png" width="110"> | <img src="docs/images/hist-cpu-clock.png" width="110"> |
+| **GPU Mem** | **GPU Temp** ¹ | **CPU Clock** ² |
+| <img src="docs/images/hist-cpu-pwr.png" width="110"> | <img src="docs/images/hist-cpu-temp.png" width="110"> | |
+| **CPU PWR** ² | **CPU Temp** ² | |
+
+¹ real °C with the [sensor helper](#-enabling-real-sensors-sudo), else a 0-100
+thermal-level proxy &nbsp;·&nbsp; ² needs the sensor helper (shows `n/a` without it)
+
+> **Not available on macOS:** *CPU Volt* — neither `powermetrics` nor (on recent
+> macOS) the SMC IOKit interface expose it.
+
+---
+
+## 🟤 Claude
+
+| | | | |
+|:--:|:--:|:--:|:--:|
+| <img src="docs/images/claude-usage.png" width="110"> | <img src="docs/images/claude-approve-idle.png" width="110"> | <img src="docs/images/claude-approve-pending.png" width="110"> | <img src="docs/images/claude-approve-approved.png" width="110"> |
+| **Usage** — 5h/7d rate-limit | **Approve** (idle) | **Approve** (pending) | **Approve** (approved) |
+
+- **Usage** — reads the Claude Code OAuth token from the Keychain and polls a
+  1-token API call for the `anthropic-ratelimit-unified-*` headers.
+- **Approve** — a physical approve button for Claude Code permission requests via
+  a `PermissionRequest` hook (file IPC). Optional wiring:
+  `"<plugin>/postinstall.sh"`.
+
+---
+
+## 📦 Build & Install
+
+No Node.js needed on your machine — only **Docker**.
 
 ```bash
-sudo "<plugins>/br.com.m4v3r1ck.hwinfo.sdPlugin/helper/install-helper.sh"
-# remove with: sudo ".../helper/uninstall-helper.sh"
+# 1. Build all plugins into ./build (vendors deps via node:20 Docker)
+./build.sh
+
+# 2. Install onto the Fifine host (copies to the StreamDock plugins dir + restarts the app)
+cd build && ./install.sh
 ```
 
-### `br.com.m4v3r1ck.claude.sdPlugin` — category **Claude**
-| Item | Data |
-|------|------|
-| Usage | Keychain OAuth token + 1-token API poll (5h/7d utilization) |
-| Approve | file-IPC + Claude Code PermissionRequest hook |
+Install path: `~/Library/Application Support/HotSpot/StreamDock/plugins/`.
+Open the StreamDock software and drag items from the **HWiNFO** / **Claude**
+categories onto keys.
 
-### Deferred
-`bt-connect` and `calendar-lcd` (need host Swift helpers + a Property Inspector +
-blueutil / Calendar permission) and the **Windows port** (PowerShell data,
-`.cmd` launcher) are not done yet.
+---
 
-## How the StreamDock plugin model works (hard-won notes)
+## 🔐 Enabling real sensors (sudo)
 
-These differ from Elgato and are why a straight copy of the Elgato plugins does
-**not** run on the D6:
+CPU/GPU temperature in **°C**, **fan RPM**, **CPU power** and **CPU clock** are
+only readable by **root** on macOS (`powermetrics`). The repo ships a small
+privileged helper — a `launchd` daemon that runs `powermetrics` as root and
+publishes the values to `/tmp/hwinfo-sensors.json`, which the plugin reads.
+
+Without it the affected items degrade gracefully (thermal-level proxy or `n/a`);
+nothing breaks.
+
+### Install the helper (one time)
+
+```bash
+sudo "$HOME/Library/Application Support/HotSpot/StreamDock/plugins/br.com.m4v3r1ck.hwinfo.sdPlugin/helper/install-helper.sh"
+```
+
+It will ask for your password, then:
+
+1. copies `sensors-daemon.sh` to `/Library/Application Support/HWiNFO/`
+2. installs `/Library/LaunchDaemons/br.com.m4v3r1ck.hwinfo.sensors.plist`
+3. loads it with `launchctl` (runs at boot, `KeepAlive`)
+
+Verify it's publishing (within ~3 s):
+
+```bash
+cat /tmp/hwinfo-sensors.json
+# {"ts":...,"cpuTempC":90.5,"gpuTempC":67,"cpuPowerW":16.5,"cpuClockMHz":2706,"fanRpm":4260}
+```
+
+The CPU Clock / PWR / Temp and Fan items switch from `n/a` to live data, and the
+Temp gauges show real °C.
+
+### Uninstall the helper
+
+```bash
+sudo "$HOME/Library/Application Support/HotSpot/StreamDock/plugins/br.com.m4v3r1ck.hwinfo.sdPlugin/helper/uninstall-helper.sh"
+```
+
+> The helper only **reads** sensors via Apple's `powermetrics`. Review
+> `helper/sensors-daemon.sh` and `helper/install-helper.sh` before running.
+
+---
+
+## 🧩 How it works (StreamDock vs Elgato)
+
+Why a straight copy of an Elgato plugin doesn't run on the D6:
 
 1. **`CodePathMac` is launched as a native executable — not a Node script.**
-   Elgato runs `CodePath` (`*.js`) with a bundled node when a `Nodejs` manifest
-   block is present. StreamDock on macOS instead `exec`s `CodePathMac` directly.
-   So each plugin ships a small executable **`run`** wrapper that locates the
-   StreamDock app's bundled `node20` (via the parent PID / known app paths) and
-   execs `plugin/index.js`, forwarding `-port -pluginUUID -registerEvent -info`.
+   Each plugin ships an executable **`run`** wrapper that finds the StreamDock
+   app's bundled `node20` and execs `plugin/index.js`, forwarding the
+   `-port -pluginUUID -registerEvent -info` arguments.
+2. **The device renders PNG via `setImage`, not SVG** (an SVG data URI shows
+   black) — hence pureimage + a bundled DejaVu font (`plugin/canvas.js`).
+3. **Manifest:** `CodePathMac`, `Software.MinimumVersion: "2.9"`, no `Nodejs`
+   block; PNG icons.
 
-2. **The device renders PNG via `setImage`, not SVG.** An SVG data URI shows up
-   black. So we rasterize to PNG with pureimage + a bundled DejaVu font
-   (`plugin/canvas.js`).
+Each item is a self-contained module (`{appear, disappear, keyDown}`) and a
+small dispatcher (`plugin/index.js`) routes events by action UUID. Shared
+renderers: `canvas.js` (PNG), `gauge.js` (radial), `history.js` (sparkline).
 
-3. **Manifest:** `CodePathMac` + `Software.MinimumVersion: "2.9"`, no `Nodejs`
-   block. Icons are PNG (`imgs/*.png`).
-
-4. **Install path:** `~/Library/Application Support/HotSpot/StreamDock/plugins/`.
-   The app must be restarted to pick up new/changed plugins.
-
-## Layout
-
-```
-<name>.sdPlugin/
-  manifest.json            # CodePathMac → run
-  run                      # executable launcher: bundled node20 + plugin/index.js
-  imgs/                    # action / plugin / category PNG icons
-  plugin/
-    index.js               # plugin logic (plain Node.js)
-    streamdock.js          # shared WebSocket client (Elgato-v2 protocol)
-    canvas.js              # shared pureimage → PNG helper
-    fonts/                 # bundled DejaVu fonts
-    package.json           # deps: ws, pureimage
-```
-
-## Build & Install
-
-No Node.js is needed on your machine — only **Docker**.
+### Regenerating the preview images
 
 ```bash
-./build.sh                 # vendors deps via node:20 Docker → ./build
-cd build && ./install.sh   # copies to the StreamDock plugins dir + restarts app
+./build.sh
+"/Applications/fifine Control Deck.app/Contents/Helpers/node20" docs/generate-previews.js
 ```
 
-`build.sh` chmod's each plugin's `run` launcher. `install.sh` reports any
-optional `postinstall.sh` (e.g. claude-approve's Claude Code hook wiring), which
-is **not** run automatically.
+---
 
-## Validating a render without the hardware
+## ⏳ Not done yet
 
-Each plugin's render functions are exported (guarded by `require.main`), so you
-can render a sample PNG under the app's bundled node20 and inspect it:
+- **bt-connect** / **calendar-lcd** — need host-side Swift helpers + a Property
+  Inspector + external prerequisites (`blueutil`, Calendar permission).
+- **Windows port** — PowerShell data collection + a `.cmd` launcher.
 
-```bash
-NODE="/Applications/fifine Control Deck.app/Contents/Helpers/node20"
-P=build/com.local.cpu-monitor.sdPlugin/plugin
-NODE_PATH="$P/node_modules" "$NODE" -e 'require("./index.js")' # etc.
-```
+## License
+
+Personal use.
