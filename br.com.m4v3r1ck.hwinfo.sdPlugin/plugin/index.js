@@ -18,6 +18,7 @@ const ITEMS = {
   "br.com.m4v3r1ck.hwinfo.cpu": require("./cpu"),
   "br.com.m4v3r1ck.hwinfo.memory": require("./memory"),
   "br.com.m4v3r1ck.hwinfo.cpuload": require("./cpu-util"),
+  "br.com.m4v3r1ck.hwinfo.gpuload": require("./gpu-util"),
   "br.com.m4v3r1ck.hwinfo.ramload": require("./ram-util"),
   "br.com.m4v3r1ck.hwinfo.cputemp": require("./cpu-temp"),
   "br.com.m4v3r1ck.hwinfo.gputemp": require("./gpu-temp"),

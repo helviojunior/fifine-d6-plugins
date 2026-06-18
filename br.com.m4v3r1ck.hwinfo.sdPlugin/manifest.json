@@ -52,6 +52,17 @@
       "SupportedInMultiActions": false
     },
     {
+      "UUID": "br.com.m4v3r1ck.hwinfo.gpuload",
+      "Name": "GPU Load (gauge)",
+      "Tooltip": "GPU utilization as a radial gauge.",
+      "Icon": "imgs/gauge",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "imgs/gauge", "TitleAlignment": "bottom", "FontSize": "9" }
+      ],
+      "SupportedInMultiActions": false
+    },
+    {
       "UUID": "br.com.m4v3r1ck.hwinfo.ramload",
       "Name": "RAM Load (gauge)",
       "Tooltip": "RAM utilization as a radial gauge.",
