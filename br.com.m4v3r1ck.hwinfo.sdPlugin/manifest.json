@@ -94,6 +94,51 @@
         { "Image": "imgs/gauge", "TitleAlignment": "bottom", "FontSize": "9" }
       ],
       "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.h.cpuusage",
+      "Name": "CPU Usage (history)",
+      "Tooltip": "CPU utilization with history graph.",
+      "Icon": "imgs/graph",
+      "Controllers": ["Keypad"],
+      "States": [ { "Image": "imgs/graph", "TitleAlignment": "bottom", "FontSize": "9" } ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.h.gpuusage",
+      "Name": "GPU Usage (history)",
+      "Tooltip": "GPU utilization with history graph.",
+      "Icon": "imgs/graph",
+      "Controllers": ["Keypad"],
+      "States": [ { "Image": "imgs/graph", "TitleAlignment": "bottom", "FontSize": "9" } ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.h.gpuclock",
+      "Name": "GPU Clock (history)",
+      "Tooltip": "GPU core clock (MHz) with history graph.",
+      "Icon": "imgs/graph",
+      "Controllers": ["Keypad"],
+      "States": [ { "Image": "imgs/graph", "TitleAlignment": "bottom", "FontSize": "9" } ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.h.gpumem",
+      "Name": "GPU Mem (history)",
+      "Tooltip": "GPU VRAM in use (MB) with history graph.",
+      "Icon": "imgs/graph",
+      "Controllers": ["Keypad"],
+      "States": [ { "Image": "imgs/graph", "TitleAlignment": "bottom", "FontSize": "9" } ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.h.gputemp",
+      "Name": "GPU Temp (history)",
+      "Tooltip": "GPU thermal level with history graph.",
+      "Icon": "imgs/graph",
+      "Controllers": ["Keypad"],
+      "States": [ { "Image": "imgs/graph", "TitleAlignment": "bottom", "FontSize": "9" } ],
+      "SupportedInMultiActions": false
     }
   ]
 }

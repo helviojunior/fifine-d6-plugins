@@ -22,6 +22,12 @@ const ITEMS = {
   "br.com.m4v3r1ck.hwinfo.ramload": require("./ram-util"),
   "br.com.m4v3r1ck.hwinfo.cputemp": require("./cpu-temp"),
   "br.com.m4v3r1ck.hwinfo.gputemp": require("./gpu-temp"),
+  // history (current value + sparkline) items
+  "br.com.m4v3r1ck.hwinfo.h.cpuusage": require("./h-cpu-usage"),
+  "br.com.m4v3r1ck.hwinfo.h.gpuusage": require("./h-gpu-usage"),
+  "br.com.m4v3r1ck.hwinfo.h.gpuclock": require("./h-gpu-clock"),
+  "br.com.m4v3r1ck.hwinfo.h.gpumem": require("./h-gpu-mem"),
+  "br.com.m4v3r1ck.hwinfo.h.gputemp": require("./h-gpu-temp"),
 };
 
 const sd = new StreamDock();
