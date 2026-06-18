@@ -1,0 +1,37 @@
+{
+  "SDKVersion": 2,
+  "Author": "Local",
+  "Name": "Memory Monitor",
+  "Description": "Show macOS RAM, swap, and memory pressure on a key.",
+  "Icon": "imgs/plugin",
+  "Version": "0.1.0",
+  "CodePathMac": "run",
+  "Category": "System",
+  "CategoryIcon": "imgs/category",
+  "Software": {
+    "MinimumVersion": "2.9"
+  },
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "10.15"
+    }
+  ],
+  "Actions": [
+    {
+      "UUID": "com.local.memory-monitor.display",
+      "Name": "Memory Monitor",
+      "Tooltip": "Real-time RAM / swap / pressure. Press to refresh.",
+      "Icon": "imgs/action",
+      "Controllers": ["Keypad"],
+      "States": [
+        {
+          "Image": "imgs/action",
+          "TitleAlignment": "bottom",
+          "FontSize": "9"
+        }
+      ],
+      "SupportedInMultiActions": false
+    }
+  ]
+}

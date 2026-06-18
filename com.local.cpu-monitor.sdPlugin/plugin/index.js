@@ -14,6 +14,9 @@ const { promisify } = require("util");
 const { StreamDock } = require("./streamdock");
 const { makeCanvas, text, rect, pngDataUri } = require("./canvas");
 
+process.on("uncaughtException", (e) => console.error("uncaught:", e));
+process.on("unhandledRejection", (e) => console.error("unhandled:", e));
+
 const exec = promisify(execFile);
 const POLL_MS = 3000;
 
