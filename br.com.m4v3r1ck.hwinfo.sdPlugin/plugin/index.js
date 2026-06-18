@@ -28,6 +28,11 @@ const ITEMS = {
   "br.com.m4v3r1ck.hwinfo.h.gpuclock": require("./h-gpu-clock"),
   "br.com.m4v3r1ck.hwinfo.h.gpumem": require("./h-gpu-mem"),
   "br.com.m4v3r1ck.hwinfo.h.gputemp": require("./h-gpu-temp"),
+  // privileged-helper backed items (real °C / power / clock / fan)
+  "br.com.m4v3r1ck.hwinfo.h.cpuclock": require("./h-cpu-clock"),
+  "br.com.m4v3r1ck.hwinfo.h.cpupwr": require("./h-cpu-pwr"),
+  "br.com.m4v3r1ck.hwinfo.h.cputemp": require("./h-cpu-temp"),
+  "br.com.m4v3r1ck.hwinfo.fan": require("./fan"),
 };
 
 const sd = new StreamDock();

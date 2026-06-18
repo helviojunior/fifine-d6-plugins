@@ -1,22 +1,19 @@
 /**
- * HWiNFO gauge item: CPU thermal level (0-100).
- *
- * macOS exposes a thermal *pressure level* (not °C) without privileged access
- * via sysctl machdep.xcpm.cpu_thermal_level. Real °C requires sudo/SMC.
+ * HWiNFO gauge item: CPU temperature.
+ * Real °C from the privileged helper when available; otherwise the no-sudo
+ * thermal-level proxy (machdep.xcpm.cpu_thermal_level, 0-100).
  */
 const { execFile } = require("child_process");
 const { promisify } = require("util");
 const { createGaugeItem } = require("./gauge");
+const { read } = require("./sensors");
 const exec = promisify(execFile);
 
 async function collect() {
+  const t = read().cpuTempC;
+  if (t != null) return { value: Math.min(100, t), display: t.toFixed(0) + "°", unit: "°C", label: "CPU TEMP" };
   let v = 0;
-  try {
-    const { stdout } = await exec("sysctl", ["-n", "machdep.xcpm.cpu_thermal_level"]);
-    v = Math.max(0, Math.min(100, parseInt(stdout.trim()) || 0));
-  } catch {
-    /* leave 0 */
-  }
+  try { const { stdout } = await exec("sysctl", ["-n", "machdep.xcpm.cpu_thermal_level"]); v = parseInt(stdout.trim()) || 0; } catch {}
   return { value: v, display: String(Math.round(v)), unit: "therm", label: "CPU TEMP" };
 }
-module.exports = createGaugeItem({ intervalMs: 3000, collect });
+module.exports = createGaugeItem({ intervalMs: 2000, collect });

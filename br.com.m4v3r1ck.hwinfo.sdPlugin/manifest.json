@@ -134,10 +134,46 @@
     {
       "UUID": "br.com.m4v3r1ck.hwinfo.h.gputemp",
       "Name": "GPU Temp (history)",
-      "Tooltip": "GPU thermal level with history graph.",
+      "Tooltip": "GPU temperature (°C with helper) with history graph.",
       "Icon": "imgs/graph",
       "Controllers": ["Keypad"],
       "States": [ { "Image": "imgs/graph", "TitleAlignment": "bottom", "FontSize": "9" } ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.h.cpuclock",
+      "Name": "CPU Clock (history)",
+      "Tooltip": "CPU clock MHz with history graph. Requires the sensor helper.",
+      "Icon": "imgs/graph",
+      "Controllers": ["Keypad"],
+      "States": [ { "Image": "imgs/graph", "TitleAlignment": "bottom", "FontSize": "9" } ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.h.cpupwr",
+      "Name": "CPU PWR (history)",
+      "Tooltip": "CPU package power W with history graph. Requires the sensor helper.",
+      "Icon": "imgs/graph",
+      "Controllers": ["Keypad"],
+      "States": [ { "Image": "imgs/graph", "TitleAlignment": "bottom", "FontSize": "9" } ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.h.cputemp",
+      "Name": "CPU Temp (history)",
+      "Tooltip": "CPU temperature °C with history graph. Requires the sensor helper.",
+      "Icon": "imgs/graph",
+      "Controllers": ["Keypad"],
+      "States": [ { "Image": "imgs/graph", "TitleAlignment": "bottom", "FontSize": "9" } ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.fan",
+      "Name": "Fan (gauge)",
+      "Tooltip": "System fan RPM as a radial gauge. Requires the sensor helper.",
+      "Icon": "imgs/gauge",
+      "Controllers": ["Keypad"],
+      "States": [ { "Image": "imgs/gauge", "TitleAlignment": "bottom", "FontSize": "9" } ],
       "SupportedInMultiActions": false
     }
   ]
