@@ -35,6 +35,11 @@ for src in "${plugins[@]}"; do
   echo "  -> $name"
   rm -rf "$DEST/$name"
   cp -R "$src" "$DEST/$name"
+  # Optional per-plugin post-install step (e.g. wiring a Claude Code hook).
+  # NOT run automatically — it may modify ~/.claude/settings.json. Opt in:
+  if [ -x "$DEST/$name/postinstall.sh" ]; then
+    echo "     ↳ optional setup available — run: \"$DEST/$name/postinstall.sh\""
+  fi
 done
 
 # Best-effort cache clear so new icons/actions are picked up.
