@@ -1,0 +1,11 @@
+{
+  "name": "com.local.claude-usage",
+  "version": "0.1.0",
+  "description": "Claude usage StreamDock plugin",
+  "main": "index.js",
+  "private": true,
+  "dependencies": {
+    "ws": "^8.18.0",
+    "pureimage": "^0.4.13"
+  }
+}

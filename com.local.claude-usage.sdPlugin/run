@@ -1,0 +1,49 @@
+#!/bin/bash
+#
+# CodePathMac launcher for StreamDock (Fifine AmpliGame D6 & compatible).
+#
+# StreamDock launches this file directly as the plugin process (like a native
+# binary), passing the SDK arguments: -port -pluginUUID -registerEvent -info.
+# Unlike Elgato, StreamDock on macOS does NOT run a `.js` CodePath through a
+# bundled node — so this wrapper locates the StreamDock app's bundled node20
+# and execs our plain-Node plugin entry point, forwarding all arguments.
+#
+DIR="$(cd "$(dirname "$0")" && pwd)"
+LOG="$DIR/plugin/debug.log"
+# Opt-in logging: set SD_DEBUG=1 to trace launch into plugin/debug.log.
+log() { [ "$SD_DEBUG" = "1" ] && echo "[wrapper $(date -u +%Y-%m-%dT%H:%M:%SZ)] $*" >>"$LOG" 2>/dev/null; return 0; }
+
+log "launched ppid=$PPID args=$*"
+
+find_node() {
+  local parent macos c app
+  # 1) node20 bundled in the StreamDock app that spawned us (via parent PID)
+  parent="$(ps -o comm= -p "$PPID" 2>/dev/null)"
+  if [ -n "$parent" ]; then
+    macos="$(dirname "$parent")"
+    for c in "$macos/../Helpers/node20" "$macos/../Helpers/node" "$macos/node20"; do
+      [ -x "$c" ] && { echo "$c"; return 0; }
+    done
+  fi
+  # 2) known application locations
+  for app in \
+    "/Applications/fifine Control Deck.app" \
+    "/Applications/StreamDock.app" \
+    "$HOME/Applications/fifine Control Deck.app"; do
+    for c in "$app/Contents/Helpers/node20" "$app/Contents/Helpers/node"; do
+      [ -x "$c" ] && { echo "$c"; return 0; }
+    done
+  done
+  # 3) anything on PATH
+  command -v node20 2>/dev/null && return 0
+  command -v node 2>/dev/null && return 0
+  return 1
+}
+
+NODE="$(find_node)"
+if [ -z "$NODE" ]; then
+  log "ERROR: could not locate a node runtime"
+  exit 1
+fi
+log "using node: $NODE"
+exec "$NODE" "$DIR/plugin/index.js" "$@"
