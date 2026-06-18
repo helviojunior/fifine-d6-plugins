@@ -1,0 +1,33 @@
+{
+  "SDKVersion": 2,
+  "Author": "Local",
+  "Name": "Claude",
+  "Description": "Claude tools: rate-limit usage and a permission approve button.",
+  "Icon": "imgs/plugin",
+  "Version": "0.1.0",
+  "CodePathMac": "run",
+  "Category": "Claude",
+  "CategoryIcon": "imgs/category",
+  "Software": { "MinimumVersion": "2.9" },
+  "OS": [ { "Platform": "mac", "MinimumVersion": "10.15" } ],
+  "Actions": [
+    {
+      "UUID": "br.com.m4v3r1ck.claude.usage",
+      "Name": "Usage",
+      "Tooltip": "Claude 5h/7d rate-limit utilization. Press to refresh.",
+      "Icon": "imgs/usage",
+      "Controllers": ["Keypad"],
+      "States": [ { "Image": "imgs/usage", "TitleAlignment": "bottom", "FontSize": "9" } ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.claude.approve",
+      "Name": "Approve",
+      "Tooltip": "Approve Claude Code permission requests with a key press.",
+      "Icon": "imgs/approve",
+      "Controllers": ["Keypad"],
+      "States": [ { "Image": "imgs/approve", "TitleAlignment": "bottom", "FontSize": "9" } ],
+      "SupportedInMultiActions": false
+    }
+  ]
+}

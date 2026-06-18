@@ -12,16 +12,40 @@ display as a **PNG** with [pureimage](https://github.com/joshmarinacci/node-pure
 > **Device:** the D6 has **15 LCD keys (5×3) and no rotary dials**, so only
 > keypad plugins are ported.
 
-## Status
+## Plugins
 
-| Plugin | Status | Description |
-|--------|--------|-------------|
-| `com.local.cpu-monitor.sdPlugin` | ✅ working on device | Real-time CPU + GPU usage bars |
-| `com.local.memory-monitor.sdPlugin` | ✅ render validated | RAM / swap / memory pressure |
-| `com.local.claude-usage.sdPlugin` | ✅ render validated | Claude rate-limit utilization (5h/7d) |
-| `com.local.claude-approve.sdPlugin` | ✅ render validated | Physical approve button for Claude Code |
-| `com.local.bt-connect.sdPlugin` | ⏳ todo (needs Swift helper + blueutil + PI) | Bluetooth connect/disconnect |
-| `com.local.calendar-lcd.sdPlugin` | ⏳ todo (needs Swift EventKit helper + PI) | Today's calendar events |
+Two consolidated plugins, each a **category** with one action per item. UUID
+prefix: `br.com.m4v3r1ck.*`.
+
+### `br.com.m4v3r1ck.hwinfo.sdPlugin` — category **HWiNFO**
+| Item | Style | Data |
+|------|-------|------|
+| CPU / GPU | bars | `top` + `ioreg` (real %) |
+| Memory | bars | `vm_stat` / `sysctl` (real) |
+| CPU Load (gauge) | radial gauge | `top` (real %) |
+| RAM Load (gauge) | radial gauge | `vm_stat` (real %) |
+| CPU Temp (gauge) | radial gauge | `machdep.xcpm.cpu_thermal_level` (0-100 index) |
+| GPU Temp (gauge) | radial gauge | `machdep.xcpm.gpu_thermal_level` (0-100 index) |
+
+Radial gauges are colored **green / yellow / red** by value.
+
+> **macOS sensor limitation:** real CPU/GPU temperature in °C and **fan RPM**
+> require privileged access (`sudo powermetrics`) or an SMC helper. On recent
+> macOS the legacy SMC IOKit reads are restricted, so a Stream Deck plugin
+> cannot read them unattended. The Temp gauges therefore use the no-sudo
+> *thermal level* (0-100) as a proxy; **CPU/GPU fan gauges are not included**
+> because no fan data is available without sudo.
+
+### `br.com.m4v3r1ck.claude.sdPlugin` — category **Claude**
+| Item | Data |
+|------|------|
+| Usage | Keychain OAuth token + 1-token API poll (5h/7d utilization) |
+| Approve | file-IPC + Claude Code PermissionRequest hook |
+
+### Deferred
+`bt-connect` and `calendar-lcd` (need host Swift helpers + a Property Inspector +
+blueutil / Calendar permission) and the **Windows port** (PowerShell data,
+`.cmd` launcher) are not done yet.
 
 ## How the StreamDock plugin model works (hard-won notes)
 

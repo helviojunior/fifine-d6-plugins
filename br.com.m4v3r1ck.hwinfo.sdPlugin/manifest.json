@@ -1,0 +1,88 @@
+{
+  "SDKVersion": 2,
+  "Author": "Local",
+  "Name": "HWiNFO",
+  "Description": "Hardware monitor: CPU/GPU and memory usage on your keys.",
+  "Icon": "imgs/plugin",
+  "Version": "0.1.0",
+  "CodePathMac": "run",
+  "Category": "HWiNFO",
+  "CategoryIcon": "imgs/category",
+  "Software": {
+    "MinimumVersion": "2.9"
+  },
+  "OS": [
+    {
+      "Platform": "mac",
+      "MinimumVersion": "10.15"
+    }
+  ],
+  "Actions": [
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.cpu",
+      "Name": "CPU / GPU",
+      "Tooltip": "Real-time CPU and GPU usage. Press to refresh.",
+      "Icon": "imgs/cpu",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "imgs/cpu", "TitleAlignment": "bottom", "FontSize": "9" }
+      ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.memory",
+      "Name": "Memory",
+      "Tooltip": "Real-time RAM / swap / pressure. Press to refresh.",
+      "Icon": "imgs/mem",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "imgs/mem", "TitleAlignment": "bottom", "FontSize": "9" }
+      ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.cpuload",
+      "Name": "CPU Load (gauge)",
+      "Tooltip": "CPU utilization as a radial gauge.",
+      "Icon": "imgs/gauge",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "imgs/gauge", "TitleAlignment": "bottom", "FontSize": "9" }
+      ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.ramload",
+      "Name": "RAM Load (gauge)",
+      "Tooltip": "RAM utilization as a radial gauge.",
+      "Icon": "imgs/gauge",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "imgs/gauge", "TitleAlignment": "bottom", "FontSize": "9" }
+      ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.cputemp",
+      "Name": "CPU Temp (gauge)",
+      "Tooltip": "CPU thermal level (0-100) as a radial gauge.",
+      "Icon": "imgs/gauge",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "imgs/gauge", "TitleAlignment": "bottom", "FontSize": "9" }
+      ],
+      "SupportedInMultiActions": false
+    },
+    {
+      "UUID": "br.com.m4v3r1ck.hwinfo.gputemp",
+      "Name": "GPU Temp (gauge)",
+      "Tooltip": "GPU thermal level (0-100) as a radial gauge.",
+      "Icon": "imgs/gauge",
+      "Controllers": ["Keypad"],
+      "States": [
+        { "Image": "imgs/gauge", "TitleAlignment": "bottom", "FontSize": "9" }
+      ],
+      "SupportedInMultiActions": false
+    }
+  ]
+}

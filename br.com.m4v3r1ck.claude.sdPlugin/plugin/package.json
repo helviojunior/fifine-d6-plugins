@@ -1,0 +1,8 @@
+{
+  "name": "br.com.m4v3r1ck.claude",
+  "version": "0.1.0",
+  "description": "Claude tools StreamDock plugin",
+  "main": "index.js",
+  "private": true,
+  "dependencies": { "ws": "^8.18.0", "pureimage": "^0.4.13" }
+}
