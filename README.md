@@ -18,23 +18,37 @@ Two consolidated plugins, each a **category** with one action per item. UUID
 prefix: `br.com.m4v3r1ck.*`.
 
 ### `br.com.m4v3r1ck.hwinfo.sdPlugin` — category **HWiNFO**
-| Item | Style | Data |
-|------|-------|------|
-| CPU / GPU | bars | `top` + `ioreg` (real %) |
-| Memory | bars | `vm_stat` / `sysctl` (real) |
-| CPU Load (gauge) | radial gauge | `top` (real %) |
-| RAM Load (gauge) | radial gauge | `vm_stat` (real %) |
-| CPU Temp (gauge) | radial gauge | `machdep.xcpm.cpu_thermal_level` (0-100 index) |
-| GPU Temp (gauge) | radial gauge | `machdep.xcpm.gpu_thermal_level` (0-100 index) |
 
-Radial gauges are colored **green / yellow / red** by value.
+Three visual styles: **bars**, **radial gauge** (green/yellow/red by value), and
+**history** (big value + filled sparkline; CPU green, GPU red).
 
-> **macOS sensor limitation:** real CPU/GPU temperature in °C and **fan RPM**
-> require privileged access (`sudo powermetrics`) or an SMC helper. On recent
-> macOS the legacy SMC IOKit reads are restricted, so a Stream Deck plugin
-> cannot read them unattended. The Temp gauges therefore use the no-sudo
-> *thermal level* (0-100) as a proxy; **CPU/GPU fan gauges are not included**
-> because no fan data is available without sudo.
+| Item | Style | Data source | Needs helper? |
+|------|-------|-------------|:---:|
+| CPU / GPU | bars | `top` + `ioreg` | – |
+| Memory | bars | `vm_stat` / `sysctl` | – |
+| CPU Load / GPU Load / RAM Load | gauge | `top` / `ioreg` / `vm_stat` (real %) | – |
+| CPU Temp / GPU Temp | gauge | real °C via helper, else `*_thermal_level` proxy | optional |
+| Fan | gauge | fan RPM | **yes** |
+| CPU Usage / GPU Usage | history | `top` / `ioreg` (real %) | – |
+| GPU Clock / GPU Mem | history | `ioreg` (MHz / VRAM MB) | – |
+| GPU Temp | history | real °C via helper, else thermal proxy | optional |
+| CPU Clock / CPU PWR / CPU Temp | history | helper (MHz / W / °C) | **yes** |
+
+> **CPU Volt** from the print is omitted — macOS `powermetrics` doesn't expose it
+> and the legacy SMC IOKit reads are blocked on recent macOS.
+
+#### Privileged sensor helper (real °C, fan RPM, CPU power/clock)
+
+macOS only exposes real temps/fan/power to root (`powermetrics`). `helper/`
+ships a **LaunchDaemon** that runs `powermetrics` as root and publishes
+`/tmp/hwinfo-sensors.json`; the plugin reads it and falls back to the no-sudo
+thermal-level proxy / `n/a` when it's not installed. Enable once (asks for your
+password):
+
+```bash
+sudo "<plugins>/br.com.m4v3r1ck.hwinfo.sdPlugin/helper/install-helper.sh"
+# remove with: sudo ".../helper/uninstall-helper.sh"
+```
 
 ### `br.com.m4v3r1ck.claude.sdPlugin` — category **Claude**
 | Item | Data |
