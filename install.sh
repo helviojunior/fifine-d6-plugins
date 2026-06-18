@@ -25,9 +25,9 @@ echo "Installing ${#plugins[@]} plugin(s) into:"
 echo "  $DEST"
 mkdir -p "$DEST"
 
-echo "Stopping StreamDock..."
+echo "Stopping StreamDock (fifine Control Deck)..."
+pkill -f "fifine Control Deck" 2>/dev/null || true
 pkill -x "StreamDock" 2>/dev/null || true
-pkill -f "StreamDock.app" 2>/dev/null || true
 sleep 2
 
 for src in "${plugins[@]}"; do
@@ -44,8 +44,8 @@ if [ -d "$CACHE" ]; then
 fi
 
 echo "Starting StreamDock..."
-open -a "StreamDock" 2>/dev/null \
-  || open -a "Fifine" 2>/dev/null \
+open -a "fifine Control Deck" 2>/dev/null \
+  || open -a "StreamDock" 2>/dev/null \
   || echo "Could not auto-launch StreamDock — please start it manually."
 
 echo ""

@@ -40,6 +40,13 @@ for src in "${plugins[@]}"; do
   # Copy plugin sources into the build dir, dropping any stale node_modules.
   rsync -a --exclude 'node_modules' "$src/" "$dest/"
 
+  # Ensure the macOS CodePath launcher stays executable (host execs it directly).
+  mac_codepath="$(python3 -c "import json,sys; print(json.load(open('$dest/manifest.json')).get('CodePathMac',''))" 2>/dev/null || true)"
+  if [ -n "$mac_codepath" ] && [ -f "$dest/$mac_codepath" ]; then
+    chmod +x "$dest/$mac_codepath"
+    echo "    chmod +x $mac_codepath"
+  fi
+
   if [ -f "$dest/plugin/package.json" ]; then
     echo "    install deps + syntax check (docker)"
     docker run --rm \

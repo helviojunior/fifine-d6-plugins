@@ -5,6 +5,7 @@
   "main": "index.js",
   "private": true,
   "dependencies": {
-    "ws": "^8.18.0"
+    "ws": "^8.18.0",
+    "pureimage": "^0.4.13"
   }
 }

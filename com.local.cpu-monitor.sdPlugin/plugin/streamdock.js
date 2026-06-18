@@ -13,6 +13,24 @@
  */
 
 const WebSocket = require("ws");
+const fs = require("fs");
+const path = require("path");
+
+// Lightweight debug log. Enabled when SD_DEBUG is set (install.sh can export it)
+// or always-on to /tmp during bring-up. Writes one file per plugin.
+const DEBUG = true;
+// Sandbox-safe: write next to the plugin (the host child process cannot reliably
+// write to /tmp under the app sandbox).
+const DEBUG_FILE = path.join(__dirname, "debug.log");
+function dbg(...args) {
+  if (!DEBUG) return;
+  const line = `[${new Date().toISOString()}] ${args.map((a) => (typeof a === "string" ? a : JSON.stringify(a))).join(" ")}\n`;
+  try {
+    fs.appendFileSync(DEBUG_FILE, line);
+  } catch {
+    /* ignore */
+  }
+}
 
 class StreamDock {
   constructor() {
@@ -22,6 +40,7 @@ class StreamDock {
     this.registerEvent = null;
     this.info = null;
     this.handlers = {};
+    dbg("=== plugin process start ===", "argv:", process.argv.slice(1).join(" "));
   }
 
   /** Register a handler for an inbound event (e.g. "keyDown", "willAppear"). */
@@ -52,7 +71,10 @@ class StreamDock {
 
     this.ws = new WebSocket(`ws://127.0.0.1:${this.port}`);
 
+    dbg("connecting to ws://127.0.0.1:" + this.port, "uuid:", this.pluginUUID, "registerEvent:", this.registerEvent);
+
     this.ws.on("open", () => {
+      dbg("ws open -> register");
       this.send({ event: this.registerEvent, uuid: this.pluginUUID });
       this._emit("connected", {});
     });
@@ -64,11 +86,18 @@ class StreamDock {
       } catch {
         return;
       }
+      dbg("recv:", msg.event, "ctx:", msg.context || "");
       this._emit(msg.event, msg);
     });
 
-    this.ws.on("error", (err) => console.error("[streamdock] ws error:", err.message));
-    this.ws.on("close", () => this._emit("disconnected", {}));
+    this.ws.on("error", (err) => {
+      dbg("ws error:", err.message);
+      console.error("[streamdock] ws error:", err.message);
+    });
+    this.ws.on("close", () => {
+      dbg("ws close");
+      this._emit("disconnected", {});
+    });
   }
 
   _emit(event, msg) {
@@ -84,7 +113,13 @@ class StreamDock {
 
   send(obj) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+      if (obj.event !== this.registerEvent) {
+        const img = obj.payload && obj.payload.image;
+        dbg("send:", obj.event, "ctx:", obj.context || "", img ? `image(${img.length}b ${String(img).slice(0, 22)}...)` : JSON.stringify(obj.payload || {}).slice(0, 60));
+      }
       this.ws.send(JSON.stringify(obj));
+    } else {
+      dbg("send DROPPED (ws not open):", obj.event);
     }
   }
 
