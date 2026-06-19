@@ -19,10 +19,10 @@ Hardware dashboard in three visual styles. Drag any item onto a key.
 
 ### Bars
 
-| | | |
-|:--:|:--:|:--:|
-| <img src="docs/images/cpu-gpu.png" width="110"> | <img src="docs/images/memory.png" width="110"> | |
-| **CPU / GPU** — usage bars | **Memory** — RAM / swap / pressure | |
+| | |
+|:--:|:--:|
+| <img src="docs/images/cpu-gpu.png" width="110"> | <img src="docs/images/memory.png" width="110"> |
+| **CPU / GPU** — usage bars | **Memory** — RAM / swap / pressure |
 
 ### Gauges — radial dial, colored **green / yellow / red** by value
 
@@ -35,14 +35,16 @@ Hardware dashboard in three visual styles. Drag any item onto a key.
 
 ### History — current value + sparkline (CPU green, GPU red)
 
-| | | |
-|:--:|:--:|:--:|
-| <img src="docs/images/hist-cpu-usage.png" width="110"> | <img src="docs/images/hist-gpu-usage.png" width="110"> | <img src="docs/images/hist-gpu-clock.png" width="110"> |
-| **CPU Usage** | **GPU Usage** | **GPU Clock** |
-| <img src="docs/images/hist-gpu-mem.png" width="110"> | <img src="docs/images/hist-gpu-temp.png" width="110"> | <img src="docs/images/hist-cpu-clock.png" width="110"> |
-| **GPU Mem** | **GPU Temp** ¹ | **CPU Clock** ² |
-| <img src="docs/images/hist-cpu-pwr.png" width="110"> | <img src="docs/images/hist-cpu-temp.png" width="110"> | |
-| **CPU PWR** ² | **CPU Temp** ² | |
+| | |
+|:--:|:--:|
+| <img src="docs/images/hist-cpu-usage.png" width="110"> | <img src="docs/images/hist-gpu-usage.png" width="110"> |
+| **CPU Usage** | **GPU Usage** |
+| <img src="docs/images/hist-gpu-clock.png" width="110"> | <img src="docs/images/hist-gpu-mem.png" width="110"> |
+| **GPU Clock** | **GPU Mem** |
+| <img src="docs/images/hist-gpu-temp.png" width="110"> | <img src="docs/images/hist-cpu-clock.png" width="110"> |
+| **GPU Temp** ¹ | **CPU Clock** ² |
+| <img src="docs/images/hist-cpu-pwr.png" width="110"> | <img src="docs/images/hist-cpu-temp.png" width="110"> |
+| **CPU PWR** ² | **CPU Temp** ² |
 
 ¹ real °C with the [sensor helper](#-enabling-real-sensors) — on macOS, without
 the helper, a 0-100 thermal-level proxy; on Windows, without the helper, ACPI °C
@@ -210,11 +212,6 @@ renderers: `canvas.js` (PNG), `gauge.js` (radial), `history.js` (sparkline).
 ```
 
 ---
-
-## ⏳ Not done yet
-
-- **bt-connect** / **calendar-lcd** — need host-side Swift helpers + a Property
-  Inspector + external prerequisites (`blueutil`, Calendar permission).
 
 ## License
 
