@@ -21,7 +21,9 @@ async function getInfo() {
     return {
       cpuUser: m.cpuUser,
       cpuSys: m.cpuSys,
-      cpuTotal: Math.min(100, m.cpuUser + m.cpuSys),
+      // Use the canonical cpuLoad so this tile's headline matches the CPU gauge
+      // and the CPU Usage history graph (all read the same winmetrics value).
+      cpuTotal: m.cpuLoad,
       gpuDevice: m.gpuUtil,
       gpuRenderer: m.gpuUtil,
       gpuTiler: 0,
