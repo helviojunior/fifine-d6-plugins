@@ -75,15 +75,24 @@ function createGaugeItem({ intervalMs, collect }) {
       console.error("gauge:", e.message);
     }
   }
+  // Self-scheduling poll loop: the next tick is queued only AFTER the current
+  // update settles, so a slow collect (e.g. a cold PowerShell spawn) can never
+  // pile up overlapping work the way setInterval would.
+  async function loop(ctx, sd) {
+    if (!timers.has(ctx)) return; // disappeared mid-update
+    await update(ctx, sd);
+    if (!timers.has(ctx)) return; // disappeared during update
+    timers.set(ctx, setTimeout(() => loop(ctx, sd), intervalMs));
+  }
   return {
     appear(ctx, sd) {
       if (timers.has(ctx)) return;
-      update(ctx, sd);
-      timers.set(ctx, setInterval(() => update(ctx, sd), intervalMs));
+      timers.set(ctx, null); // mark active before the first async update
+      loop(ctx, sd);
     },
     disappear(ctx) {
       const t = timers.get(ctx);
-      if (t) clearInterval(t);
+      if (t) clearTimeout(t);
       timers.delete(ctx);
     },
     keyDown(ctx, sd) {

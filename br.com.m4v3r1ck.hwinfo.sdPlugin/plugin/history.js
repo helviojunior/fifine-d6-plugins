@@ -76,17 +76,25 @@ function createHistoryItem({ intervalMs, title, color, collect, floor = 100 }) {
       console.error("history:", e.message);
     }
   }
+  // Self-scheduling poll loop: queue the next tick only AFTER the current update
+  // settles so a slow collect cannot pile up overlapping work (setInterval would).
+  async function loop(ctx, sd) {
+    if (!timers.has(ctx)) return;
+    await update(ctx, sd);
+    if (!timers.has(ctx)) return;
+    timers.set(ctx, setTimeout(() => loop(ctx, sd), intervalMs));
+  }
   return {
     appear(ctx, sd) {
       if (timers.has(ctx)) return;
       hist.set(ctx, []);
       peak.set(ctx, floor);
-      update(ctx, sd);
-      timers.set(ctx, setInterval(() => update(ctx, sd), intervalMs));
+      timers.set(ctx, null); // mark active before the first async update
+      loop(ctx, sd);
     },
     disappear(ctx) {
       const t = timers.get(ctx);
-      if (t) clearInterval(t);
+      if (t) clearTimeout(t);
       timers.delete(ctx);
       hist.delete(ctx);
       peak.delete(ctx);

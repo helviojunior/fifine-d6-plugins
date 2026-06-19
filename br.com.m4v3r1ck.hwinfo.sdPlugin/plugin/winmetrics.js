@@ -101,19 +101,42 @@ const ENCODED = Buffer.from(SCRIPT, "utf16le").toString("base64");
 
 let cache = null;
 let cacheAt = 0;
-const TTL_MS = 1500;
+let inflight = null; // shared promise while a PowerShell spawn is running
+// TTL must be >= the fastest tile poll interval so a single tile never spawns a
+// fresh process every tick. Tiles poll at 2-3s; 2500ms keeps one spawn covering
+// a full cycle across all tiles.
+const TTL_MS = 2500;
+// Hard ceiling on a single spawn. Without this a hung/slow powershell.exe lingers
+// and, combined with many tiles, piles up until the OS is starved.
+const KILL_MS = 8000;
+
+async function run() {
+  const { stdout } = await exec(
+    "powershell",
+    ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", ENCODED],
+    { windowsHide: true, maxBuffer: 1 << 20, timeout: KILL_MS, killSignal: "SIGKILL" }
+  );
+  cache = JSON.parse(stdout.trim());
+  cacheAt = Date.now();
+  return cache;
+}
 
 async function snapshot() {
   const now = Date.now();
   if (cache && now - cacheAt < TTL_MS) return cache;
-  const { stdout } = await exec(
-    "powershell",
-    ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-EncodedCommand", ENCODED],
-    { windowsHide: true, maxBuffer: 1 << 20 }
-  );
-  cache = JSON.parse(stdout.trim());
-  cacheAt = now;
-  return cache;
+  // Collapse every concurrent caller (and back-to-back ticks across tiles) onto
+  // a SINGLE in-flight spawn. This is what stops N tiles from each launching
+  // their own powershell.exe when the cache is cold/expired.
+  if (inflight) return inflight;
+  inflight = run().finally(() => { inflight = null; });
+  // If this spawn fails, fall back to the last good cache instead of throwing
+  // (and never let a rejection escape as an unhandledRejection storm).
+  try {
+    return await inflight;
+  } catch (e) {
+    if (cache) return cache;
+    throw e;
+  }
 }
 
 module.exports = { snapshot };

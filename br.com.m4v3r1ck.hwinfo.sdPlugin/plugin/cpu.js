@@ -113,15 +113,24 @@ async function update(ctx, sd) {
   }
 }
 
+// Self-scheduling poll loop: queue the next tick only AFTER the current update
+// settles so a slow collect can never pile up overlapping work (setInterval would).
+async function loop(ctx, sd) {
+  if (!timers.has(ctx)) return;
+  await update(ctx, sd);
+  if (!timers.has(ctx)) return;
+  timers.set(ctx, setTimeout(() => loop(ctx, sd), POLL_MS));
+}
+
 module.exports = {
   appear(ctx, sd) {
     if (timers.has(ctx)) return;
-    update(ctx, sd);
-    timers.set(ctx, setInterval(() => update(ctx, sd), POLL_MS));
+    timers.set(ctx, null); // mark active before the first async update
+    loop(ctx, sd);
   },
   disappear(ctx) {
     const t = timers.get(ctx);
-    if (t) clearInterval(t);
+    if (t) clearTimeout(t);
     timers.delete(ctx);
   },
   keyDown(ctx, sd) {
