@@ -17,10 +17,28 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 BUILD_DIR="$ROOT/build"
 NODE_IMAGE="${NODE_IMAGE:-node:20-bookworm}"
+# Image used to cross-compile the Windows CodePathWin launcher (tools/launcher.c).
+MINGW_IMAGE="${MINGW_IMAGE:-debian:bookworm-slim}"
 
 echo "==> Cleaning $BUILD_DIR"
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
+
+# Cross-compile the Windows launcher once (shared by every node plugin). On
+# Windows the StreamDock host runs CodePathWin as a native process and will NOT
+# execute a .js directly, so each node plugin ships this tiny launch.exe (the
+# Windows counterpart of the macOS `run` wrapper) which execs index.js.
+LAUNCHER_EXE=""
+if [ -f "$ROOT/tools/launcher.c" ]; then
+  echo "==> Cross-compiling Windows launcher via Docker ($MINGW_IMAGE)"
+  docker run --rm -v "$ROOT/tools":/work -w /work "$MINGW_IMAGE" bash -c "
+    set -e
+    apt-get update -qq >/dev/null 2>&1
+    apt-get install -y -qq gcc-mingw-w64-x86-64 >/dev/null 2>&1
+    x86_64-w64-mingw32-gcc -O2 -s -mwindows launcher.c -o launch.exe"
+  LAUNCHER_EXE="$ROOT/tools/launch.exe"
+  echo "    built $LAUNCHER_EXE"
+fi
 
 shopt -s nullglob
 plugins=("$ROOT"/*.sdPlugin)
@@ -54,6 +72,11 @@ for src in "${plugins[@]}"; do
       -w /app \
       "$NODE_IMAGE" \
       bash -c "npm install --omit=dev --no-audit --no-fund --loglevel=error && node --check index.js && echo '    ok: index.js'"
+    # Ship the Windows launcher next to index.js (CodePathWin points at it).
+    if [ -n "$LAUNCHER_EXE" ] && [ -f "$LAUNCHER_EXE" ]; then
+      cp "$LAUNCHER_EXE" "$dest/plugin/launch.exe"
+      echo "    + launch.exe (Windows CodePathWin launcher)"
+    fi
   else
     echo "    no plugin/package.json — nothing to install"
   fi

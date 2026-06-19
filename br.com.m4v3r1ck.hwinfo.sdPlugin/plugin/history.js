@@ -1,12 +1,17 @@
 /**
  * Shared "current value + history sparkline" renderer for HWiNFO items.
  *
- * Draws a title, a big current value, and a filled area history graph (auto-
- * scaled to the recent buffer). CPU items are green, GPU items red/orange.
+ * Draws a title, a big current value, and a filled area history graph. The
+ * graph area is NOT auto-scaled to the recent buffer (which made the line
+ * jump as samples scrolled). Instead the Y axis is fixed: bottom = 0, top =
+ * a high-water mark that starts at `floor` (default 100) and only ever grows.
+ * So percentage / temperature tiles stay a fixed 0-100, while MHz / MB / W
+ * tiles start at 0-100 and raise the ceiling only when a new peak appears.
+ * CPU items are green, GPU items red/orange.
  *
- * createHistoryItem({intervalMs, title, color, collect}) returns the
+ * createHistoryItem({intervalMs, title, color, collect, floor}) returns the
  * {appear, disappear, keyDown} lifecycle; collect() returns { value(number),
- * display(string) }. Each key context keeps its own ring buffer.
+ * display(string) }. Each key context keeps its own ring buffer + peak.
  */
 
 const { makeCanvas, text, pngDataUri } = require("./canvas");
@@ -29,12 +34,11 @@ function scale(hex, f) {
   return "#" + c.map((v) => Math.max(0, Math.min(255, v)).toString(16).padStart(2, "0")).join("");
 }
 
-function sparkline(ctx, hist, x, y, w, h, color) {
+function sparkline(ctx, hist, x, y, w, h, color, hi) {
   if (hist.length < 2) return;
-  const min = Math.min(...hist);
-  const max = Math.max(...hist);
-  const rng = max - min || 1;
-  const pts = hist.map((v, i) => [x + (w * i) / (hist.length - 1), y + h - ((v - min) / rng) * h * 0.9 - 2]);
+  const rng = hi || 1; // fixed Y domain [0, hi]; never relative to the buffer
+  const clamp = (v) => Math.max(0, Math.min(hi, v));
+  const pts = hist.map((v, i) => [x + (w * i) / (hist.length - 1), y + h - (clamp(v) / rng) * h * 0.9 - 2]);
   fillPoly(ctx, [[x, y + h], ...pts, [x + w, y + h]], scale(color, 0.32)); // filled area
   for (let i = 1; i < pts.length; i++) {
     const a = pts[i - 1], b = pts[i];
@@ -42,27 +46,31 @@ function sparkline(ctx, hist, x, y, w, h, color) {
   }
 }
 
-async function renderHistory({ title, value, hist, color }) {
+async function renderHistory({ title, value, hist, color, hi = 100 }) {
   const { img, ctx } = makeCanvas(W, H);
   ctx.fillStyle = "#111111";
   ctx.fillRect(0, 0, W, H);
   text(ctx, title, 72, 26, 9, "#cfcfcf", "center", "DeckBold");
   text(ctx, value, 72, 60, 15, "#ffffff", "center", "DeckBold");
-  sparkline(ctx, hist || [], 8, 84, 128, 52, color);
+  sparkline(ctx, hist || [], 8, 84, 128, 52, color, hi);
   return pngDataUri(img);
 }
 
-function createHistoryItem({ intervalMs, title, color, collect }) {
+function createHistoryItem({ intervalMs, title, color, collect, floor = 100 }) {
   const hist = new Map(); // ctx -> number[]
+  const peak = new Map(); // ctx -> number (Y-axis high-water mark; only grows)
   const timers = new Map();
   async function update(ctx, sd) {
     try {
       const { value, display } = await collect();
+      const v = Number(value) || 0;
       let arr = hist.get(ctx) || [];
-      arr.push(Number(value) || 0);
+      arr.push(v);
       if (arr.length > CAP) arr.shift();
       hist.set(ctx, arr);
-      sd.setImage(ctx, await renderHistory({ title, value: display, hist: arr, color }));
+      const hi = Math.max(peak.get(ctx) ?? floor, v); // ratchet up, never down
+      peak.set(ctx, hi);
+      sd.setImage(ctx, await renderHistory({ title, value: display, hist: arr, color, hi }));
       sd.setTitle(ctx, "");
     } catch (e) {
       console.error("history:", e.message);
@@ -72,6 +80,7 @@ function createHistoryItem({ intervalMs, title, color, collect }) {
     appear(ctx, sd) {
       if (timers.has(ctx)) return;
       hist.set(ctx, []);
+      peak.set(ctx, floor);
       update(ctx, sd);
       timers.set(ctx, setInterval(() => update(ctx, sd), intervalMs));
     },
@@ -80,6 +89,7 @@ function createHistoryItem({ intervalMs, title, color, collect }) {
       if (t) clearInterval(t);
       timers.delete(ctx);
       hist.delete(ctx);
+      peak.delete(ctx);
     },
     keyDown(ctx, sd) {
       update(ctx, sd);

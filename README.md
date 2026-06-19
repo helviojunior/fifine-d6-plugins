@@ -101,9 +101,12 @@ cd build; .\install.ps1
 Install path: `%APPDATA%\HotSpot\StreamDock\plugins\`.
 
 Then open the StreamDock software and drag items from the **HWiNFO** / **Claude**
-categories onto keys. On Windows the plugin runs as `plugin/index.js` directly
-through the app's bundled Node (`CodePathWin`); data is collected via PowerShell
-(CIM perf counters — no admin, locale-independent).
+categories onto keys. On Windows the StreamDock host launches `CodePathWin` as a
+native process and will **not** run a `.js` directly, so each plugin ships a tiny
+`plugin/launch.exe` (built from `tools/launcher.c`) that locates the app's bundled
+`node20.exe` and execs `plugin/index.js` — the Windows counterpart of the macOS
+`run` wrapper. Data is collected via PowerShell (CIM perf counters — no admin,
+locale-independent).
 
 ---
 
@@ -177,12 +180,15 @@ sudo "$HOME/Library/Application Support/HotSpot/StreamDock/plugins/br.com.m4v3r1
 
 Why a straight copy of an Elgato plugin doesn't run on the D6:
 
-1. **`CodePathMac` is launched as a native executable — not a Node script.**
-   Each plugin ships an executable **`run`** wrapper that finds the StreamDock
-   app's bundled `node20` and execs `plugin/index.js`, forwarding the
-   `-port -pluginUUID -registerEvent -info` arguments. On Windows StreamDock
-   *does* run a `.js` CodePath through its bundled Node, so `CodePathWin` points
-   straight at `plugin/index.js` (no wrapper needed).
+1. **The CodePath is launched as a native executable — not a Node script** (on
+   *both* OSes). On macOS each plugin ships an executable **`run`** bash wrapper;
+   on Windows it ships **`plugin/launch.exe`** (built from `tools/launcher.c` via
+   a Docker mingw-w64 cross-compiler). Both locate the StreamDock app's bundled
+   `node20` and exec `plugin/index.js`, forwarding the SDK's
+   `-port -pluginUUID -registerEvent -info` arguments. Pointing `CodePathWin`
+   straight at `plugin/index.js` does **not** work — the host can't execute a
+   `.js`, so it launches nothing and restarts the plugin forever
+   (`SDPluginManager::restartPlugin … N` in the host log).
 2. **The device renders PNG via `setImage`, not SVG** (an SVG data URI shows
    black) — hence pureimage + a bundled DejaVu font (`plugin/canvas.js`).
 3. **Manifest:** `CodePathMac` + `CodePathWin`, `OS` lists `mac` and `windows`,

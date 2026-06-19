@@ -24,7 +24,8 @@
 [CmdletBinding()]
 param(
   [switch]$UseLocalNpm,
-  [string]$NodeImage = $(if ($env:NODE_IMAGE) { $env:NODE_IMAGE } else { "node:20-bookworm" })
+  [string]$NodeImage = $(if ($env:NODE_IMAGE) { $env:NODE_IMAGE } else { "node:20-bookworm" }),
+  [string]$MingwImage = $(if ($env:MINGW_IMAGE) { $env:MINGW_IMAGE } else { "debian:bookworm-slim" })
 )
 
 $ErrorActionPreference = "Stop"
@@ -54,6 +55,25 @@ if ($UseLocalNpm) {
 }
 $mode = if ($haveNpm) { "local npm" } else { "Docker ($NodeImage)" }
 Write-Host "==> Found $($plugins.Count) plugin(s); vendoring deps via $mode"
+
+# Cross-compile the Windows launcher once (shared by every node plugin). On
+# Windows the StreamDock host runs CodePathWin as a native process and will NOT
+# execute a .js directly, so each node plugin ships this tiny launch.exe (the
+# Windows counterpart of the macOS `run` wrapper) which execs index.js. Built
+# with a Docker mingw-w64 cross-compiler so no C toolchain is needed on the host.
+$LauncherExe = $null
+$launcherSrc = Join-Path $Root "tools\launcher.c"
+if ((Test-Path $launcherSrc) -and (Have "docker")) {
+  Write-Host "==> Cross-compiling Windows launcher via Docker ($MingwImage)"
+  $mount = (Join-Path $Root "tools") -replace '\\', '/'
+  & docker run --rm -v "${mount}:/work" -w /work $MingwImage `
+    bash -c "set -e; apt-get update -qq >/dev/null 2>&1; apt-get install -y -qq gcc-mingw-w64-x86-64 >/dev/null 2>&1; x86_64-w64-mingw32-gcc -O2 -s -mwindows launcher.c -o launch.exe"
+  if ($LASTEXITCODE -ne 0) { Write-Error "launcher cross-compile failed" }
+  $LauncherExe = Join-Path $Root "tools\launch.exe"
+  Write-Host "    built $LauncherExe"
+} elseif (Test-Path $launcherSrc) {
+  Write-Host "==> WARNING: docker not available — cannot build launch.exe; relying on committed copy"
+}
 
 foreach ($src in $plugins) {
   $name = $src.Name
@@ -87,6 +107,11 @@ foreach ($src in $plugins) {
       & docker run --rm -v "${mount}:/app" -w /app $NodeImage `
         bash -c "npm install --omit=dev --no-audit --no-fund --loglevel=error && node --check index.js && echo '    ok: index.js'"
       if ($LASTEXITCODE -ne 0) { Write-Error "docker build step failed for $name" }
+    }
+    # Ship the Windows launcher next to index.js (CodePathWin points at it).
+    if ($LauncherExe -and (Test-Path $LauncherExe)) {
+      Copy-Item $LauncherExe (Join-Path $pluginDir "launch.exe") -Force
+      Write-Host "    + launch.exe (Windows CodePathWin launcher)"
     }
   } else {
     Write-Host "    no plugin\package.json — nothing to install"

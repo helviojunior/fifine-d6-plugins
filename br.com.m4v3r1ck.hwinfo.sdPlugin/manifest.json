@@ -6,7 +6,7 @@
   "Icon": "imgs/plugin",
   "Version": "0.1.0",
   "CodePathMac": "run",
-  "CodePathWin": "plugin/index.js",
+  "CodePathWin": "plugin/launch.exe",
   "Category": "HWiNFO",
   "CategoryIcon": "imgs/category",
   "Software": {
