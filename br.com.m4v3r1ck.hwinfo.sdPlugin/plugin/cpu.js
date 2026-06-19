@@ -3,8 +3,8 @@
  *
  * Self-contained item module — manages its own per-context poll timers and
  * exposes the {appear, disappear, keyDown} lifecycle the dispatcher calls.
- * Data sources are macOS-only for now (top + ioreg); a Windows branch can be
- * added in getInfo() later (process.platform === "win32").
+ * Data sources: macOS uses top + ioreg; Windows uses the shared winmetrics
+ * PowerShell snapshot (process.platform === "win32").
  */
 
 const { execFile } = require("child_process");
@@ -16,6 +16,17 @@ const POLL_MS = 3000;
 const timers = new Map();
 
 async function getInfo() {
+  if (process.platform === "win32") {
+    const m = await require("./winmetrics").snapshot();
+    return {
+      cpuUser: m.cpuUser,
+      cpuSys: m.cpuSys,
+      cpuTotal: Math.min(100, m.cpuUser + m.cpuSys),
+      gpuDevice: m.gpuUtil,
+      gpuRenderer: m.gpuUtil,
+      gpuTiler: 0,
+    };
+  }
   const [topResult, ioregResult] = await Promise.all([
     exec("top", ["-l1", "-s0", "-n0"]),
     exec("ioreg", ["-r", "-c", "IOAccelerator", "-l"]),

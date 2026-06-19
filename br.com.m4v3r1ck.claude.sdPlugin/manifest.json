@@ -6,10 +6,11 @@
   "Icon": "imgs/plugin",
   "Version": "0.1.0",
   "CodePathMac": "run",
+  "CodePathWin": "plugin/index.js",
   "Category": "Claude",
   "CategoryIcon": "imgs/category",
   "Software": { "MinimumVersion": "2.9" },
-  "OS": [ { "Platform": "mac", "MinimumVersion": "10.15" } ],
+  "OS": [ { "Platform": "mac", "MinimumVersion": "10.15" }, { "Platform": "windows", "MinimumVersion": "10" } ],
   "Actions": [
     {
       "UUID": "br.com.m4v3r1ck.claude.usage",

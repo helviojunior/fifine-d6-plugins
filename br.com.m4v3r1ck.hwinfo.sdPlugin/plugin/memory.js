@@ -1,9 +1,9 @@
 /**
  * HWiNFO item: RAM / swap / memory pressure.
  *
- * Self-contained item module ({appear, disappear, keyDown}). macOS-only data
- * for now (vm_stat / sysctl / memory_pressure); add a Windows branch in
- * getInfo() later.
+ * Self-contained item module ({appear, disappear, keyDown}). macOS uses
+ * vm_stat / sysctl / memory_pressure; Windows uses the shared winmetrics
+ * PowerShell snapshot (page file stands in for swap).
  */
 
 const { execFile } = require("child_process");
@@ -15,6 +15,25 @@ const POLL_MS = 3000;
 const timers = new Map();
 
 async function getInfo() {
+  if (process.platform === "win32") {
+    const m = await require("./winmetrics").snapshot();
+    const totalGB = m.totalKB / 1024 / 1024;
+    const freeGB = m.freeKB / 1024 / 1024;
+    const usedGB = Math.max(0, totalGB - freeGB);
+    const freePercent = m.totalKB > 0 ? Math.round((m.freeKB / m.totalKB) * 100) : 50;
+    let pressure = "nominal";
+    if (freePercent < 20) pressure = "critical";
+    else if (freePercent < 40) pressure = "warn";
+    return {
+      totalGB,
+      usedGB,
+      freeGB,
+      swapUsedGB: m.pfUsedMB / 1024,
+      swapTotalGB: m.pfTotalMB / 1024,
+      pressure,
+      freePercent,
+    };
+  }
   const [vmStatResult, memsizeResult, swapResult, pressureResult, pageSizeResult] = await Promise.all([
     exec("vm_stat"),
     exec("sysctl", ["-n", "hw.memsize"]),

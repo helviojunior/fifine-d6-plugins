@@ -8,6 +8,7 @@ const exec = promisify(execFile);
 async function collect() {
   const t = read().gpuTempC;
   if (t != null) return { value: t, display: t.toFixed(0) + " °C" };
+  if (process.platform === "win32") return { value: 0, display: "n/a" };
   let v = 0;
   try { const { stdout } = await exec("sysctl", ["-n", "machdep.xcpm.gpu_thermal_level"]); v = parseInt(stdout.trim()) || 0; } catch {}
   return { value: v, display: v + " lvl" };

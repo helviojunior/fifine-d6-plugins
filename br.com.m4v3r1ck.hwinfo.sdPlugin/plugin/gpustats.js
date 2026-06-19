@@ -1,9 +1,12 @@
 /**
- * Shared GPU stats reader (macOS, no sudo) via `ioreg -r -c IOAccelerator -l`.
+ * Shared GPU stats reader.
+ *   - macOS (no sudo): `ioreg -r -c IOAccelerator -l`
+ *   - Windows (no admin): the winmetrics PowerShell snapshot; core clock / power
+ *     aren't exposed without the sensor helper, so they come from sensors.js.
  *
  * Machines can expose multiple GPUs (e.g. Intel iGPU + AMD dGPU); for each
  * metric we take the max meaningful value (the active discrete GPU). Cached for
- * a short window so multiple GPU tiles share one ioreg call.
+ * a short window so multiple GPU tiles share one underlying call.
  */
 
 const { execFile } = require("child_process");
@@ -25,6 +28,20 @@ function allInts(stdout, key) {
 async function read() {
   const now = Date.now();
   if (cache && now - cacheAt < TTL_MS) return cache;
+
+  if (process.platform === "win32") {
+    const m = await require("./winmetrics").snapshot();
+    const s = require("./sensors").read();
+    cache = {
+      util: m.gpuUtil || 0,
+      clockMHz: s.gpuClockMHz != null ? Math.round(s.gpuClockMHz) : 0,
+      powerW: s.gpuPowerW != null ? s.gpuPowerW : 0,
+      vramMB: m.gpuMemMB || 0,
+    };
+    cacheAt = now;
+    return cache;
+  }
+
   const { stdout } = await exec("ioreg", ["-r", "-c", "IOAccelerator", "-l"]);
 
   const util = Math.max(

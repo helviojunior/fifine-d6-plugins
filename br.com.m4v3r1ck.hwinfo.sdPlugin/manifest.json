@@ -6,6 +6,7 @@
   "Icon": "imgs/plugin",
   "Version": "0.1.0",
   "CodePathMac": "run",
+  "CodePathWin": "plugin/index.js",
   "Category": "HWiNFO",
   "CategoryIcon": "imgs/category",
   "Software": {
@@ -15,6 +16,10 @@
     {
       "Platform": "mac",
       "MinimumVersion": "10.15"
+    },
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
     }
   ],
   "Actions": [

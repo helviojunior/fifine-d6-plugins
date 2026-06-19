@@ -2,15 +2,19 @@
  * Claude item: rate-limit utilization (5h / 7d).
  *
  * Self-contained item module ({appear, disappear, keyDown}). Reads the Claude
- * Code OAuth token from the macOS Keychain and polls a 1-token API call every
- * 60s for the anthropic-ratelimit-unified-* headers. macOS-only token read for
- * now; a Windows branch can be added in getOAuthToken().
+ * Code OAuth token and polls a 1-token API call every 60s for the
+ * anthropic-ratelimit-unified-* headers.
  *
- * First poll may trigger a macOS Keychain permission prompt — click Allow.
+ * Token source: macOS reads the Keychain ("Claude Code-credentials"); Windows
+ * (and Linux) read ~/.claude/.credentials.json. On macOS the first poll may
+ * trigger a Keychain permission prompt — click Allow.
  */
 
 const { execFile } = require("child_process");
 const { promisify } = require("util");
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
 const https = require("https");
 const { makeCanvas, text, rect, pngDataUri } = require("./canvas");
 
@@ -19,10 +23,17 @@ const POLL_MS = 60_000;
 const state = new Map(); // ctx -> { timer, lastInfo }
 
 async function getOAuthToken() {
-  const { stdout } = await execFileAsync("security", [
-    "find-generic-password", "-s", "Claude Code-credentials", "-w",
-  ]);
-  const oauth = JSON.parse(stdout.trim()).claudeAiOauth;
+  let oauth;
+  if (process.platform === "win32") {
+    const file = path.join(os.homedir(), ".claude", ".credentials.json");
+    oauth = JSON.parse(fs.readFileSync(file, "utf-8")).claudeAiOauth;
+  } else {
+    const { stdout } = await execFileAsync("security", [
+      "find-generic-password", "-s", "Claude Code-credentials", "-w",
+    ]);
+    oauth = JSON.parse(stdout.trim()).claudeAiOauth;
+  }
+  if (!oauth) throw new Error("no credentials");
   if (Date.now() > oauth.expiresAt) throw new Error("token expired");
   return oauth.accessToken;
 }
