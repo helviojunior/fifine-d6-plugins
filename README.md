@@ -19,25 +19,22 @@ Hardware dashboard in three visual styles. Drag any item onto a key.
 
 ### Bars
 
-| | |
-|:--:|:--:|
 | <img src="docs/images/cpu-gpu.png" width="110"> | <img src="docs/images/memory.png" width="110"> |
+|:--:|:--:|
 | **CPU / GPU** — usage bars | **Memory** — RAM / swap / pressure |
 
 ### Gauges — radial dial, colored **green / yellow / red** by value
 
-| | | |
-|:--:|:--:|:--:|
 | <img src="docs/images/gauge-cpu-load.png" width="110"> | <img src="docs/images/gauge-gpu-load.png" width="110"> | <img src="docs/images/gauge-ram-load.png" width="110"> |
+|:--:|:--:|:--:|
 | **CPU Load** | **GPU Load** | **RAM Load** |
 | <img src="docs/images/gauge-cpu-temp.png" width="110"> | <img src="docs/images/gauge-gpu-temp.png" width="110"> | <img src="docs/images/gauge-fan.png" width="110"> |
 | **CPU Temp** ¹ | **GPU Temp** ¹ | **Fan** ² |
 
 ### History — current value + sparkline (CPU green, GPU red)
 
-| | |
-|:--:|:--:|
 | <img src="docs/images/hist-cpu-usage.png" width="110"> | <img src="docs/images/hist-gpu-usage.png" width="110"> |
+|:--:|:--:|
 | **CPU Usage** | **GPU Usage** |
 | <img src="docs/images/hist-gpu-clock.png" width="110"> | <img src="docs/images/hist-gpu-mem.png" width="110"> |
 | **GPU Clock** | **GPU Mem** |
@@ -58,9 +55,8 @@ if the board exposes it, else `n/a` &nbsp;·&nbsp; ² needs the sensor helper
 
 ## 🟤 Claude
 
-| | | | |
-|:--:|:--:|:--:|:--:|
 | <img src="docs/images/claude-usage.png" width="110"> | <img src="docs/images/claude-approve-idle.png" width="110"> | <img src="docs/images/claude-approve-pending.png" width="110"> | <img src="docs/images/claude-approve-approved.png" width="110"> |
+|:--:|:--:|:--:|:--:|
 | **Usage** — 5h/7d rate-limit | **Approve** (idle) | **Approve** (pending) | **Approve** (approved) |
 
 - **Usage** — reads the Claude Code OAuth token (macOS Keychain;
